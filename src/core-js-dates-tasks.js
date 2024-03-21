@@ -153,8 +153,16 @@ function getCountDaysOnPeriod(dateStart, dateEnd) {
  * '2024-02-02', { start: '2024-02-02', end: '2024-03-02' } => true
  * '2024-02-10', { start: '2024-02-02', end: '2024-03-02' } => true
  */
-function isDateInPeriod(/* date, period */) {
-  throw new Error('Not implemented');
+function isDateInPeriod(date, period) {
+  let result = false;
+  if (
+    Date.parse(date) >= Date.parse(period.start) &&
+    Date.parse(period.end) >= Date.parse(date)
+  ) {
+    result = true;
+  }
+
+  return result;
 }
 /**
  * Returns the date formatted in 'M/D/YYYY, hh:mm:ss a'.
@@ -307,8 +315,37 @@ function getQuarter(date) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule(period, countWorkDays, countOffDays) {
+  const result = [];
+
+  const start = Date.parse(period.start.split('-').reverse().join('-'));
+  const end = Date.parse(period.end.split('-').reverse().join('-'));
+
+  let wEnd = 0;
+  let wDay = 0;
+
+  for (let i = start; i <= end; i += 86400000) {
+    const now = new Date(i);
+
+    if (countWorkDays > wDay) {
+      result.push(
+        `${now.getDate().toString().padStart(2, 0)}-${(now.getMonth() + 1)
+          .toString()
+          .padStart(2, 0)}-${now.getFullYear()}`
+      );
+      wDay += 1;
+      if (countWorkDays === wDay) {
+        wEnd = 0;
+      }
+    } else if (countOffDays > wEnd) {
+      wEnd += 1;
+      if (countOffDays === wEnd) {
+        wDay = 0;
+      }
+    }
+  }
+
+  return result;
 }
 
 /**
